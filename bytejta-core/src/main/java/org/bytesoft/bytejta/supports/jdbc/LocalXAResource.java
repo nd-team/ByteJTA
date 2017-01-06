@@ -90,6 +90,10 @@ public class LocalXAResource implements XAResource {
 			} else {
 				throw new XAException();
 			}
+		} else if (flags == XAResource.TMJOIN) {
+			if (this.currentXid == null) {
+				throw new XAException();
+			}
 		} else if (flags != XAResource.TMNOFLAGS) {
 			throw new XAException();
 		} else if (this.currentXid != null) {
@@ -142,8 +146,7 @@ public class LocalXAResource implements XAResource {
 				stmt.setLong(3, System.currentTimeMillis());
 				int value = stmt.executeUpdate();
 				if (value == 0) {
-					throw new IllegalStateException(
-							"The operation failed and the data was not written to the database!");
+					throw new IllegalStateException("The operation failed and the data was not written to the database!");
 				}
 			} catch (SQLException ex) {
 				boolean tableExists = false;
@@ -320,6 +323,10 @@ public class LocalXAResource implements XAResource {
 				logger.debug("Error occurred while closing resource {}.", closeable);
 			}
 		}
+	}
+
+	public boolean hasParticipatedTx() {
+		return currentXid != null;
 	}
 
 	public int getTransactionTimeout() {
